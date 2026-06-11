@@ -1,40 +1,68 @@
-/**
- * Welcome to Cloudflare Workers!
- *
- * This is a template for a Scheduled Worker: a Worker that can run on a
- * configurable interval:
- * https://developers.cloudflare.com/workers/platform/triggers/cron-triggers/
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Run `curl "http://localhost:8787/__scheduled?cron=*+*+*+*+*"` to see your Worker in action
- * - Run `npm run deploy` to publish your Worker
- *
- * Bind resources to your Worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import { formatThaiDateTime } from "./utils";
+// import type { WebhookRequestBody } from '@line/bot-sdk';
+
+const amountFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const signFormatter = new Intl.NumberFormat('en-US', {
+  signDisplay: 'exceptZero'
+});
 
 export default {
 	async fetch(req) {
-		const url = new URL(req.url);
-		url.pathname = '/__scheduled';
-		url.searchParams.append('cron', '* * * * *');
-		return new Response(`To test the scheduled handler, ensure you have used the "--test-scheduled" then try running "curl ${url.href}".`);
+		// For webhook events from LINE Messaging API, mostly used when you want to get your user id.
+		// if (req.method === "POST") {
+		// 	const body = await req.json<WebhookRequestBody>();
+		// 	console.log("Received webhook event:", JSON.stringify(body, null, 2));
+		// 	return new Response("OK");
+		// }
+
+		return new Response(`Contact: khao@khaodoes.dev`);
 	},
-
-	// The scheduled handler is invoked at the interval set in our wrangler.jsonc's
-	// [[triggers]] configuration.
 	async scheduled(event, env, ctx): Promise<void> {
-		// A Cron Trigger can make requests to other endpoints on the Internet,
-		// publish to a Queue, query a D1 Database, and much more.
-		//
-		// We'll keep it simple and make an API call to a Cloudflare API:
-		let resp = await fetch('https://api.cloudflare.com/client/v4/ips');
-		let wasSuccessful = resp.ok ? 'success' : 'fail';
+		console.log(`Scheduled event triggered at ${new Date().toLocaleString()}`);
+		const goldRes = await fetch("https://www.goldtraders.or.th/api/GoldPrices/Latest", {
+			headers: {
+				"User-Agent": "Khao's Gold Notifier Bot 0.0.1 (khao@khaodoes.dev)"
+			}
+		});
 
-		// You could store this result in KV, write to a D1 Database, or publish to a Queue.
-		// In this template, we'll just log the result:
-		console.log(`trigger fired at ${event.cron}: ${wasSuccessful}`);
+		if (!goldRes.ok) {
+			console.error(`Failed to fetch gold prices: ${goldRes.status} ${goldRes.statusText}`);
+			return;
+		}
+		const data = await goldRes.json<GoldResponse>();
+
+		const lastUpdatePriceSeq = await env.GOLD_KV.get("lastUpdatePriceSeq");
+    if (lastUpdatePriceSeq === data.priceSeq.toString()) return;
+		await env.GOLD_KV.put("lastUpdatePriceSeq", data.priceSeq.toString());
+
+		await fetch("https://api.line.me/v2/bot/message/push", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"Authorization": `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`
+			},
+			body: JSON.stringify({
+				to: env.LINE_USER_ID,
+        messages: [
+          {
+            type: "text",
+            text: [
+							'ราคาซื้อทองคำ ' + formatThaiDateTime(new Date(data.asTime)) + ' (ครั้งที่ ' + data.priceSeq + ')',
+							'',
+							'ทองคำแท่ง' + amountFormatter.format(data.bL_BuyPrice),
+							'ทองรูปพรรณ' + amountFormatter.format(data.oM965_BuyPrice),
+							'',
+							'เทียบกับครั้งก่อน ' + signFormatter.format(data.priceChangeFromPrevRow)
+						].join("\n")
+          }
+        ]
+      })
+		});
+
+		console.log(`Sent price update for priceSeq ${data.priceSeq} at ${new Date(data.asTime).toLocaleString()}`);
 	},
 } satisfies ExportedHandler<Env>;
