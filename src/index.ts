@@ -53,8 +53,8 @@ export default {
             text: [
 							'ราคาซื้อทองคำ ' + formatThaiDateTime(new Date(data.asTime)) + ' (ครั้งที่ ' + data.priceSeq + ')',
 							'',
-							'ทองคำแท่ง' + amountFormatter.format(data.bL_BuyPrice),
-							'ทองรูปพรรณ' + amountFormatter.format(data.oM965_BuyPrice),
+							'ทองคำแท่ง ' + amountFormatter.format(data.bL_BuyPrice),
+							'ทองรูปพรรณ ' + amountFormatter.format(data.oM965_BuyPrice),
 							'',
 							'เทียบกับครั้งก่อน ' + signFormatter.format(data.priceChangeFromPrevRow)
 						].join("\n")
