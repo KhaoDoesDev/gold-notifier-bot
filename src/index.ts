@@ -39,29 +39,31 @@ export default {
     if (lastUpdatePriceSeq === data.priceSeq.toString()) return;
 		await env.GOLD_KV.put("lastUpdatePriceSeq", data.priceSeq.toString());
 
-		await fetch("https://api.line.me/v2/bot/message/push", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"Authorization": `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`
-			},
-			body: JSON.stringify({
-				to: env.LINE_USER_ID,
-        messages: [
-          {
-            type: "text",
-            text: [
-							'ราคาซื้อทองคำ ' + formatThaiDateTime(new Date(data.asTime)) + ' (ครั้งที่ ' + data.priceSeq + ')',
-							'',
-							'ทองคำแท่ง ' + amountFormatter.format(data.bL_BuyPrice),
-							'ทองรูปพรรณ ' + amountFormatter.format(data.oM965_BuyPrice),
-							'',
-							'เทียบกับครั้งก่อน ' + signFormatter.format(data.priceChangeFromPrevRow)
-						].join("\n")
-          }
-        ]
-      })
-		});
+		for (const userId of env.LINE_USER_ID.split(",")) {
+			await fetch("https://api.line.me/v2/bot/message/push", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"Authorization": `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`
+				},
+				body: JSON.stringify({
+					to: userId,
+					messages: [
+						{
+							type: "text",
+							text: [
+								'ราคาซื้อทองคำ ' + formatThaiDateTime(new Date(data.asTime)) + ' (ครั้งที่ ' + data.priceSeq + ')',
+								'',
+								'ทองคำแท่ง ' + amountFormatter.format(data.bL_BuyPrice),
+								'ทองรูปพรรณ ' + amountFormatter.format(data.oM965_BuyPrice),
+								'',
+								'เทียบกับครั้งก่อน ' + signFormatter.format(data.priceChangeFromPrevRow)
+							].join("\n")
+						}
+					]
+				})
+			});
+		}
 
 		console.log(`Sent price update for priceSeq ${data.priceSeq} at ${new Date(data.asTime).toLocaleString()}`);
 	},
