@@ -34,7 +34,7 @@ Create the KV namespace used to remember the last sent gold price update:
 bunx wrangler kv namespace create GOLD_KV
 ```
 
-Wrangler logs a `kv_namespaces` block. Copy the generated `id` into `wrangler.jsonc` and keep the binding name as `GOLD_KV`:
+Wrangler logs a `kv_namespaces` block. Copy the generated `id` into `wrangler.jsonc` (replace the value inside already) and keep the binding name as `GOLD_KV`:
 
 ```jsonc
 "kv_namespaces": [
