@@ -1,14 +1,14 @@
-# Khao's Gold Price Notifier Line Bot
+# Khao's Gold Price Notifier LINE Bot
 
-This is a Line bot for notifying the gold prices from the [Gold Trader's Association Of Thailand](https://www.goldtraders.or.th/).
+This is a LINE bot for notifying the gold prices from the [Gold Trader's Association Of Thailand](https://www.goldtraders.or.th/).
 
-This was a quick bot project made for my grandmother to notify her when the buying gold price changes by notifying her through her messaging app of choice, Line.
+This was a quick bot project made for my grandmother to notify her when the buying gold price changes by notifying her through her messaging app of choice, LINE.
 
-## Why Line?
+## Why LINE?
 
 Well, it's what my grandmother and many other Thai people use.
 
-If it wasn't Line, it would've been either Discord or Telegram but sadly, my grandmother doesn't use those "technologies".
+If it wasn't LINE, it would've been either Discord or Telegram but sadly, my grandmother doesn't use those "technologies".
 
 ## How to use it?
 
@@ -38,7 +38,7 @@ Use a user id to message one account, or a group id if you invited the bot to a 
 
 ### Deploy
 
-After secrets are set, run:
+After your secrets are set, run:
 
 ```bash
 bun run deploy --secrets-file .env
