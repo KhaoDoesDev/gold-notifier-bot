@@ -28,23 +28,6 @@ Log in to Cloudflare:
 bunx wrangler login
 ```
 
-Create the KV namespace used to remember the last sent gold price update:
-
-```bash
-bunx wrangler kv namespace create GOLD_KV
-```
-
-Wrangler logs a `kv_namespaces` block. Copy the generated `id` into `wrangler.jsonc` (replace the value inside already) and keep the binding name as `GOLD_KV`:
-
-```jsonc
-"kv_namespaces": [
-  {
-    "binding": "GOLD_KV",
-    "id": "your-generated-namespace-id"
-  }
-]
-```
-
 Copy `.env.example` to `.env` and fill it in:
 
 ```bash
@@ -55,7 +38,7 @@ Use a user id to message one account, or a group id if you invited the bot to a 
 
 ### Deploy
 
-After the `wrangler.jsonc` has your KV namespace id and secrets are set:
+After secrets are set, run:
 
 ```bash
 bun run deploy --secrets-file .env
